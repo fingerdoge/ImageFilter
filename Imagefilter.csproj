@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 固定版本 3.1.8，免费且无许可证限制 -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.8" />
+  </ItemGroup>
+</Project>
