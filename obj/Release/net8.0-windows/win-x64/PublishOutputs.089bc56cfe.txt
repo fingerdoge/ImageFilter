@@ -1,2 +1,0 @@
-C:\Personal_Program\Project_Dev\ImageFilter\PublishOutput\Imagefilter.pdb
-C:\Personal_Program\Project_Dev\ImageFilter\PublishOutput\Imagefilter.exe
