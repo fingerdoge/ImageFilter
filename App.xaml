@@ -3,134 +3,136 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
         <Application.Resources>
-                <!-- 柔和主色 -->
+                <!-- 主色 -->
                 <SolidColorBrush x:Key="AccentColor"
-                                 Color="#5B9BD5"/>
-                <!-- 停止按钮颜色（单独定义） -->
+                                Color="#5B9BD5"/>
                 <SolidColorBrush x:Key="StopButtonColor"
-                                 Color="#D97A6C"/>
+                                Color="#D97A6C"/>
 
                 <!-- 通用按钮样式 -->
                 <Style TargetType="Button">
                         <Setter Property="Background"
-                                Value="{StaticResource AccentColor}"/>
+                                        Value="{StaticResource AccentColor}"/>
                         <Setter Property="Foreground"
-                                Value="White"/>
+                                        Value="White"/>
                         <Setter Property="Padding"
-                                Value="10,5"/>
+                                        Value="10,5"/>
                         <Setter Property="Margin"
-                                Value="4"/>
+                                        Value="4"/>
                         <Setter Property="FontWeight"
-                                Value="SemiBold"/>
+                                        Value="SemiBold"/>
                         <Setter Property="Cursor"
-                                Value="Hand"/>
+                                        Value="Hand"/>
                         <Setter Property="BorderThickness"
-                                Value="0"/>
+                                        Value="0"/>
                         <Setter Property="Height"
-                                Value="32"/>
-                        <!-- 移除 CornerRadius，因为 Button 不支持 -->
+                                        Value="32"/>
                         <Setter Property="Opacity"
-                                Value="0.9"/>
+                                        Value="0.9"/>
                         <Style.Triggers>
                                 <Trigger Property="IsMouseOver"
-                                         Value="True">
+                                                Value="True">
                                         <Setter Property="Opacity"
-                                                Value="1"/>
+                                                        Value="1"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed"
-                                         Value="True">
+                                                Value="True">
                                         <Setter Property="Opacity"
-                                                Value="0.8"/>
+                                                        Value="0.8"/>
                                 </Trigger>
                         </Style.Triggers>
                 </Style>
 
                 <!-- 停止按钮专用样式 -->
-                <Style TargetType="Button"
-                       x:Key="StopButton">
+                <Style x:Key="StopButton"
+                                TargetType="Button">
                         <Setter Property="Background"
-                                Value="{StaticResource StopButtonColor}"/>
+                                        Value="{StaticResource StopButtonColor}"/>
                         <Setter Property="Foreground"
-                                Value="White"/>
+                                        Value="White"/>
                         <Setter Property="Padding"
-                                Value="10,5"/>
+                                        Value="10,5"/>
                         <Setter Property="Margin"
-                                Value="4"/>
+                                        Value="4"/>
                         <Setter Property="FontWeight"
-                                Value="SemiBold"/>
+                                        Value="SemiBold"/>
                         <Setter Property="Cursor"
-                                Value="Hand"/>
+                                        Value="Hand"/>
                         <Setter Property="BorderThickness"
-                                Value="0"/>
+                                        Value="0"/>
                         <Setter Property="Height"
-                                Value="32"/>
+                                        Value="32"/>
                         <Setter Property="Opacity"
-                                Value="0.9"/>
+                                        Value="0.9"/>
                         <Style.Triggers>
                                 <Trigger Property="IsMouseOver"
-                                         Value="True">
+                                                Value="True">
                                         <Setter Property="Opacity"
-                                                Value="1"/>
+                                                        Value="1"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed"
-                                         Value="True">
+                                                Value="True">
                                         <Setter Property="Opacity"
-                                                Value="0.8"/>
+                                                        Value="0.8"/>
                                 </Trigger>
                         </Style.Triggers>
                 </Style>
 
-                <!-- 其他样式保持不变... -->
+                <!-- TextBox 样式 -->
                 <Style TargetType="TextBox">
                         <Setter Property="Margin"
-                                Value="4"/>
+                                        Value="4"/>
                         <Setter Property="Padding"
-                                Value="4"/>
+                                        Value="4"/>
                         <Setter Property="BorderBrush"
-                                Value="#CCCCCC"/>
+                                        Value="#CCCCCC"/>
                         <Setter Property="BorderThickness"
-                                Value="1"/>
+                                        Value="1"/>
                         <Setter Property="Height"
-                                Value="28"/>
+                                        Value="28"/>
                         <Setter Property="VerticalContentAlignment"
-                                Value="Center"/>
+                                        Value="Center"/>
                         <Setter Property="Background"
-                                Value="#FFFFFF"/>
+                                        Value="#FFFFFF"/>
                         <Setter Property="Foreground"
-                                Value="#333333"/>
+                                        Value="#333333"/>
                 </Style>
 
+                <!-- Label 样式 -->
                 <Style TargetType="Label">
                         <Setter Property="Margin"
-                                Value="4,0"/>
+                                        Value="4,0"/>
                         <Setter Property="VerticalAlignment"
-                                Value="Center"/>
+                                        Value="Center"/>
                         <Setter Property="FontWeight"
-                                Value="SemiBold"/>
+                                        Value="SemiBold"/>
                         <Setter Property="Foreground"
-                                Value="#333333"/>
+                                        Value="#333333"/>
                 </Style>
 
+                <!-- TextBlock -->
                 <Style TargetType="TextBlock">
                         <Setter Property="Foreground"
-                                Value="#333333"/>
+                                        Value="#333333"/>
                 </Style>
 
+                <!-- ListView -->
                 <Style TargetType="ListView">
                         <Setter Property="Background"
-                                Value="White"/>
+                                        Value="White"/>
                         <Setter Property="Foreground"
-                                Value="#333333"/>
+                                        Value="#333333"/>
                 </Style>
 
+                <!-- StatusBar -->
                 <Style TargetType="StatusBar">
                         <Setter Property="Background"
-                                Value="#F5F5F5"/>
+                                        Value="#F5F5F5"/>
                 </Style>
 
                 <!-- 滑动开关样式 -->
                 <Style x:Key="ToggleSwitch"
-                       TargetType="CheckBox">
+                                TargetType="CheckBox">
                         <Setter Property="Template">
                                 <Setter.Value>
                                         <ControlTemplate TargetType="CheckBox">
@@ -142,13 +144,13 @@
                                                         <Border x:Name="Track"
                                                                 Grid.Column="0"
                                                                 Width="40"
-                                                                Height="22"
+                                                                        Height="22"
                                                                 CornerRadius="11"
                                                                 Background="#CCCCCC"
                                                                 Cursor="Hand">
                                                                 <Ellipse x:Name="Thumb"
                                                                          Width="18"
-                                                                         Height="18"
+                                                                                Height="18"
                                                                          Fill="White"
                                                                          HorizontalAlignment="Left"
                                                                          Margin="2,2,0,2"
@@ -165,33 +167,96 @@
                                                 </Grid>
                                                 <ControlTemplate.Triggers>
                                                         <Trigger Property="IsChecked"
-                                                                 Value="True">
+                                                                        Value="True">
                                                                 <Setter TargetName="Track"
-                                                                        Property="Background"
-                                                                        Value="{StaticResource AccentColor}"/>
+                                                                                Property="Background"
+                                                                                Value="{StaticResource AccentColor}"/>
                                                                 <Setter TargetName="Thumb"
-                                                                        Property="RenderTransform">
+                                                                                Property="RenderTransform">
                                                                         <Setter.Value>
                                                                                 <TranslateTransform X="18"/>
                                                                         </Setter.Value>
                                                                 </Setter>
                                                         </Trigger>
                                                         <Trigger Property="IsEnabled"
-                                                                 Value="False">
+                                                                        Value="False">
                                                                 <Setter TargetName="Track"
-                                                                        Property="Opacity"
-                                                                        Value="0.5"/>
+                                                                                Property="Opacity"
+                                                                                Value="0.5"/>
                                                         </Trigger>
                                                         <Trigger Property="IsMouseOver"
-                                                                 Value="True">
+                                                                        Value="True">
                                                                 <Setter TargetName="Track"
-                                                                        Property="Opacity"
-                                                                        Value="0.8"/>
+                                                                                Property="Opacity"
+                                                                                Value="0.8"/>
                                                         </Trigger>
                                                 </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                 </Setter.Value>
                         </Setter>
+                </Style>
+
+                <!-- 清晰度区间按钮样式 -->
+                <Style x:Key="ClaritySegmentButton"
+                                TargetType="ToggleButton">
+                        <Setter Property="Background"
+                                        Value="#E8E8E8"/>
+                        <Setter Property="Foreground"
+                                        Value="#333333"/>
+                        <Setter Property="BorderThickness"
+                                        Value="0"/>
+                        <Setter Property="FontWeight"
+                                        Value="Normal"/>
+                        <Setter Property="Cursor"
+                                        Value="Hand"/>
+                        <Setter Property="Height"
+                                        Value="30"/>
+                        <Setter Property="MinWidth"
+                                        Value="65"/>
+                        <Setter Property="Template">
+                                <Setter.Value>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        BorderThickness="0"
+                                                        Padding="4,2">
+                                                        <ContentPresenter HorizontalAlignment="Center"
+                                                                        VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsChecked"
+                                                                        Value="True">
+                                                                <Setter Property="Background"
+                                                                                Value="{StaticResource AccentColor}"/>
+                                                                <Setter Property="Foreground"
+                                                                                Value="White"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsMouseOver"
+                                                                        Value="True">
+                                                                <Setter Property="Background"
+                                                                                Value="#D0D0D0"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsChecked"
+                                                                        Value="True">
+                                                                <Setter Property="Opacity"
+                                                                                Value="0.85"/>
+                                                        </Trigger>
+                                                </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                </Setter.Value>
+                        </Setter>
+                </Style>
+
+                <!-- 刻度标签样式 -->
+                <Style x:Key="ClarityScaleLabel"
+                                TargetType="TextBlock">
+                        <Setter Property="FontSize"
+                                        Value="10"/>
+                        <Setter Property="Foreground"
+                                        Value="#666666"/>
+                        <Setter Property="HorizontalAlignment"
+                                        Value="Center"/>
+                        <Setter Property="Margin"
+                                        Value="0,2,0,0"/>
                 </Style>
         </Application.Resources>
 </Application>

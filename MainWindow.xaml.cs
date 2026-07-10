@@ -76,7 +76,7 @@ namespace Imagefilter
             LogMessage($"切换到 {mode} 模式");
         }
 
-        // ========== 配置管理（无主题） ==========
+        // ========== 配置管理 ==========
         private class Config
         {
             public string SourcePath { get; set; } = "";
@@ -313,7 +313,7 @@ namespace Imagefilter
         // ========== 开始筛选 ==========
         private async void StartFilter_Click(object sender, RoutedEventArgs e)
         {
-            // 比例阈值相等验证
+            // 比例阈值相等验证（宽高相同）
             if (_currentMode == "Wide" && chkWideRatio.IsChecked == true)
             {
                 int rw = ParseOrDefault(txtWideRatioW.Text, -1);
@@ -406,12 +406,15 @@ namespace Imagefilter
             }
         }
 
-        // ========== 读取模式参数 ==========
+        // ========== 读取模式参数（包含清晰度） ==========
         private ModeParameters ReadModeParameters(string mode)
         {
             var p = new ModeParameters();
+            var clarityRanges = new List<(int Low, int High)>();
+
             if (mode == "Wide")
             {
+                // 像素条件
                 p.EnableMaxW = chkWideMaxW.IsChecked == true;
                 p.MaxW = ParseOrDefault(txtWideMaxW.Text, 9999);
                 p.EnableMinW = chkWideMinW.IsChecked == true;
@@ -420,6 +423,8 @@ namespace Imagefilter
                 p.MaxH = ParseOrDefault(txtWideMaxH.Text, 9999);
                 p.EnableMinH = chkWideMinH.IsChecked == true;
                 p.MinH = ParseOrDefault(txtWideMinH.Text, 0);
+
+                // 比例条件
                 p.EnableRatio = chkWideRatio.IsChecked == true;
                 if (p.EnableRatio)
                 {
@@ -435,17 +440,31 @@ namespace Imagefilter
                         p.EnableRatio = false;
                     }
                 }
+
+                // 清晰度条件（基于总像素 宽×高）
+                if (WideClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));        // ≤ 1080p
+                if (WideClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));   // 1080p ~ 2K
+                if (WideClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));   // 2K ~ 4K
+                if (WideClaritySeg3.IsChecked == true) clarityRanges.Add((8294400, int.MaxValue)); // > 4K
             }
             else if (mode == "Avatar")
             {
+                // 像素条件（边长）
                 p.EnableMaxSize = chkAvatarMax.IsChecked == true;
                 p.MaxSize = ParseOrDefault(txtAvatarMax.Text, 9999);
                 p.EnableMinSize = chkAvatarMin.IsChecked == true;
                 p.MinSize = ParseOrDefault(txtAvatarMin.Text, 0);
                 p.EnableRatio = false;
+
+                // 清晰度条件
+                if (AvatarClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));
+                if (AvatarClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));
+                if (AvatarClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));
+                if (AvatarClaritySeg3.IsChecked == true) clarityRanges.Add((8294400, int.MaxValue));
             }
             else if (mode == "Portrait")
             {
+                // 像素条件
                 p.EnableMaxW = chkPortraitMaxW.IsChecked == true;
                 p.MaxW = ParseOrDefault(txtPortraitMaxW.Text, 9999);
                 p.EnableMinW = chkPortraitMinW.IsChecked == true;
@@ -454,6 +473,8 @@ namespace Imagefilter
                 p.MaxH = ParseOrDefault(txtPortraitMaxH.Text, 9999);
                 p.EnableMinH = chkPortraitMinH.IsChecked == true;
                 p.MinH = ParseOrDefault(txtPortraitMinH.Text, 0);
+
+                // 比例条件
                 p.EnableRatio = chkPortraitRatio.IsChecked == true;
                 if (p.EnableRatio)
                 {
@@ -469,7 +490,16 @@ namespace Imagefilter
                         p.EnableRatio = false;
                     }
                 }
+
+                // 清晰度条件
+                if (PortraitClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));
+                if (PortraitClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));
+                if (PortraitClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));
+                if (PortraitClaritySeg3.IsChecked == true) clarityRanges.Add((8294400, int.MaxValue));
             }
+
+            p.EnableClarity = clarityRanges.Count > 0;
+            p.ClarityRanges = clarityRanges;
             return p;
         }
 
@@ -480,7 +510,7 @@ namespace Imagefilter
             return defaultValue;
         }
 
-        // ========== 筛选逻辑 ==========
+        // ========== 筛选逻辑（支持清晰度） ==========
         private List<ImageInfo> FilterImages(List<string> files, string mode, ModeParameters p, IProgress<string> progress, CancellationToken token)
         {
             var matched = new List<ImageInfo>();
@@ -503,6 +533,7 @@ namespace Imagefilter
                     int longSide = Math.Max(w, h);
                     int shortSide = Math.Min(w, h);
                     double ratio = (double)w / h;
+                    int totalPixels = w * h;  // 总像素
 
                     bool match = true;
 
@@ -551,6 +582,13 @@ namespace Imagefilter
                         }
                     }
 
+                    // 清晰度筛选（基于总像素）
+                    if (match && p.EnableClarity)
+                    {
+                        bool clarityOk = p.ClarityRanges.Any(range => totalPixels > range.Low && totalPixels <= range.High);
+                        if (!clarityOk) match = false;
+                    }
+
                     if (match)
                     {
                         matched.Add(new ImageInfo
@@ -561,7 +599,8 @@ namespace Imagefilter
                             Height = h,
                             LongSide = longSide,
                             ShortSide = shortSide,
-                            Ratio = Math.Round(ratio, 3)
+                            Ratio = Math.Round(ratio, 3),
+                            TotalPixels = totalPixels
                         });
                     }
                 }
@@ -662,6 +701,7 @@ namespace Imagefilter
 
     public class ModeParameters
     {
+        // 尺寸条件
         public bool EnableMaxW { get; set; }
         public int MaxW { get; set; }
         public bool EnableMinW { get; set; }
@@ -670,13 +710,21 @@ namespace Imagefilter
         public int MaxH { get; set; }
         public bool EnableMinH { get; set; }
         public int MinH { get; set; }
+
+        // 比例条件
         public bool EnableRatio { get; set; }
         public double RatioThreshold { get; set; }
         public bool RatioInvert { get; set; }
+
+        // 头像专用
         public bool EnableMaxSize { get; set; }
         public int MaxSize { get; set; }
         public bool EnableMinSize { get; set; }
         public int MinSize { get; set; }
+
+        // 清晰度（总像素）
+        public bool EnableClarity { get; set; }
+        public List<(int Low, int High)> ClarityRanges { get; set; } = new();
     }
 
     public class ImageInfo
@@ -688,5 +736,6 @@ namespace Imagefilter
         public int LongSide { get; set; }
         public int ShortSide { get; set; }
         public double Ratio { get; set; }
+        public int TotalPixels { get; set; }  // 新增：总像素
     }
 }
