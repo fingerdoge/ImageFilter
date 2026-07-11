@@ -46,7 +46,7 @@ namespace Imagefilter
                 LoadConfig();
                 AttachCheckboxEvents();
                 AttachNumericTextBoxEvents();
-                SelectMode("Wide");
+                SelectMode("Normal");
             }
             catch (Exception ex)
             {
@@ -66,10 +66,12 @@ namespace Imagefilter
         {
             _currentMode = mode;
             btnWide.Background = mode == "Wide" ? (System.Windows.Media.Brush)FindResource("AccentColor") : System.Windows.Media.Brushes.Gray;
+            btnNormal.Background = mode == "Normal" ? (System.Windows.Media.Brush)FindResource("AccentColor") : System.Windows.Media.Brushes.Gray;
             btnAvatar.Background = mode == "Avatar" ? (System.Windows.Media.Brush)FindResource("AccentColor") : System.Windows.Media.Brushes.Gray;
             btnPortrait.Background = mode == "Portrait" ? (System.Windows.Media.Brush)FindResource("AccentColor") : System.Windows.Media.Brushes.Gray;
 
             panelWide.Visibility = mode == "Wide" ? Visibility.Visible : Visibility.Collapsed;
+            panelNormal.Visibility = mode == "Normal" ? Visibility.Visible : Visibility.Collapsed;
             panelAvatar.Visibility = mode == "Avatar" ? Visibility.Visible : Visibility.Collapsed;
             panelPortrait.Visibility = mode == "Portrait" ? Visibility.Visible : Visibility.Collapsed;
 
@@ -138,6 +140,7 @@ namespace Imagefilter
 
             string name = box.Name;
             bool isRatioBox = name == "txtWideRatioW" || name == "txtWideRatioH" ||
+                              name == "txtNormalRatioW" || name == "txtNormalRatioH" ||
                               name == "txtPortraitRatioW" || name == "txtPortraitRatioH";
 
             // 去除前导零
@@ -256,6 +259,7 @@ namespace Imagefilter
         {
             string name = chk.Name;
 
+            // 宽屏比例
             if (name == "chkWideRatio")
             {
                 var txtW = FindName("txtWideRatioW") as TextBox;
@@ -267,6 +271,19 @@ namespace Imagefilter
                 if (invertChk != null) { invertChk.IsEnabled = isChecked; if (!isChecked) invertChk.IsChecked = false; }
                 return;
             }
+            // 普通比例
+            if (name == "chkNormalRatio")
+            {
+                var txtW = FindName("txtNormalRatioW") as TextBox;
+                var txtH = FindName("txtNormalRatioH") as TextBox;
+                bool isChecked = chk.IsChecked == true;
+                if (txtW != null) { txtW.IsEnabled = isChecked; txtW.Text = ""; }
+                if (txtH != null) { txtH.IsEnabled = isChecked; txtH.Text = ""; }
+                var invertChk = FindName("chkNormalRatioInvert") as CheckBox;
+                if (invertChk != null) { invertChk.IsEnabled = isChecked; if (!isChecked) invertChk.IsChecked = false; }
+                return;
+            }
+            // 竖屏比例
             if (name == "chkPortraitRatio")
             {
                 var txtW = FindName("txtPortraitRatioW") as TextBox;
@@ -279,6 +296,7 @@ namespace Imagefilter
                 return;
             }
 
+            // 普通像素开关
             string targetName = name.Replace("chk", "txt");
             var txt = FindName(targetName) as TextBox;
             if (txt != null)
@@ -318,6 +336,16 @@ namespace Imagefilter
             {
                 int rw = ParseOrDefault(txtWideRatioW.Text, -1);
                 int rh = ParseOrDefault(txtWideRatioH.Text, -1);
+                if (rw > 0 && rh > 0 && rw == rh)
+                {
+                    MessageBox.Show("1:1图片请选择头像模式（1:1）喵", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+            }
+            else if (_currentMode == "Normal" && chkNormalRatio.IsChecked == true)
+            {
+                int rw = ParseOrDefault(txtNormalRatioW.Text, -1);
+                int rh = ParseOrDefault(txtNormalRatioH.Text, -1);
                 if (rw > 0 && rh > 0 && rw == rh)
                 {
                     MessageBox.Show("1:1图片请选择头像模式（1:1）喵", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -406,7 +434,7 @@ namespace Imagefilter
             }
         }
 
-        // ========== 读取模式参数（包含清晰度） ==========
+        // ========== 读取模式参数（包含普通模式） ==========
         private ModeParameters ReadModeParameters(string mode)
         {
             var p = new ModeParameters();
@@ -414,7 +442,6 @@ namespace Imagefilter
 
             if (mode == "Wide")
             {
-                // 像素条件
                 p.EnableMaxW = chkWideMaxW.IsChecked == true;
                 p.MaxW = ParseOrDefault(txtWideMaxW.Text, 9999);
                 p.EnableMinW = chkWideMinW.IsChecked == true;
@@ -424,7 +451,6 @@ namespace Imagefilter
                 p.EnableMinH = chkWideMinH.IsChecked == true;
                 p.MinH = ParseOrDefault(txtWideMinH.Text, 0);
 
-                // 比例条件
                 p.EnableRatio = chkWideRatio.IsChecked == true;
                 if (p.EnableRatio)
                 {
@@ -441,22 +467,51 @@ namespace Imagefilter
                     }
                 }
 
-                // 清晰度条件（基于总像素 宽×高）
-                if (WideClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));        // ≤ 1080p
-                if (WideClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));   // 1080p ~ 2K
-                if (WideClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));   // 2K ~ 4K
-                if (WideClaritySeg3.IsChecked == true) clarityRanges.Add((8294400, int.MaxValue)); // > 4K
+                if (WideClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));
+                if (WideClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));
+                if (WideClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));
+                if (WideClaritySeg3.IsChecked == true) clarityRanges.Add((8294400, int.MaxValue));
+            }
+            else if (mode == "Normal")
+            {
+                p.EnableMaxW = chkNormalMaxW.IsChecked == true;
+                p.MaxW = ParseOrDefault(txtNormalMaxW.Text, 9999);
+                p.EnableMinW = chkNormalMinW.IsChecked == true;
+                p.MinW = ParseOrDefault(txtNormalMinW.Text, 0);
+                p.EnableMaxH = chkNormalMaxH.IsChecked == true;
+                p.MaxH = ParseOrDefault(txtNormalMaxH.Text, 9999);
+                p.EnableMinH = chkNormalMinH.IsChecked == true;
+                p.MinH = ParseOrDefault(txtNormalMinH.Text, 0);
+
+                p.EnableRatio = chkNormalRatio.IsChecked == true;
+                if (p.EnableRatio)
+                {
+                    int rw = ParseOrDefault(txtNormalRatioW.Text, -1);
+                    int rh = ParseOrDefault(txtNormalRatioH.Text, -1);
+                    if (rw > 0 && rh > 0)
+                    {
+                        p.RatioThreshold = (double)rw / rh;
+                        p.RatioInvert = chkNormalRatioInvert.IsChecked == true;
+                    }
+                    else
+                    {
+                        p.EnableRatio = false;
+                    }
+                }
+
+                if (NormalClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));
+                if (NormalClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));
+                if (NormalClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));
+                if (NormalClaritySeg3.IsChecked == true) clarityRanges.Add((8294400, int.MaxValue));
             }
             else if (mode == "Avatar")
             {
-                // 像素条件（边长）
                 p.EnableMaxSize = chkAvatarMax.IsChecked == true;
                 p.MaxSize = ParseOrDefault(txtAvatarMax.Text, 9999);
                 p.EnableMinSize = chkAvatarMin.IsChecked == true;
                 p.MinSize = ParseOrDefault(txtAvatarMin.Text, 0);
                 p.EnableRatio = false;
 
-                // 清晰度条件
                 if (AvatarClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));
                 if (AvatarClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));
                 if (AvatarClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));
@@ -464,7 +519,6 @@ namespace Imagefilter
             }
             else if (mode == "Portrait")
             {
-                // 像素条件
                 p.EnableMaxW = chkPortraitMaxW.IsChecked == true;
                 p.MaxW = ParseOrDefault(txtPortraitMaxW.Text, 9999);
                 p.EnableMinW = chkPortraitMinW.IsChecked == true;
@@ -474,7 +528,6 @@ namespace Imagefilter
                 p.EnableMinH = chkPortraitMinH.IsChecked == true;
                 p.MinH = ParseOrDefault(txtPortraitMinH.Text, 0);
 
-                // 比例条件
                 p.EnableRatio = chkPortraitRatio.IsChecked == true;
                 if (p.EnableRatio)
                 {
@@ -491,7 +544,6 @@ namespace Imagefilter
                     }
                 }
 
-                // 清晰度条件
                 if (PortraitClaritySeg0.IsChecked == true) clarityRanges.Add((0, 2073600));
                 if (PortraitClaritySeg1.IsChecked == true) clarityRanges.Add((2073600, 3686400));
                 if (PortraitClaritySeg2.IsChecked == true) clarityRanges.Add((3686400, 8294400));
@@ -510,7 +562,7 @@ namespace Imagefilter
             return defaultValue;
         }
 
-        // ========== 筛选逻辑（支持清晰度） ==========
+        // ========== 筛选逻辑（含普通模式和头像2%误差） ==========
         private List<ImageInfo> FilterImages(List<string> files, string mode, ModeParameters p, IProgress<string> progress, CancellationToken token)
         {
             var matched = new List<ImageInfo>();
@@ -533,7 +585,7 @@ namespace Imagefilter
                     int longSide = Math.Max(w, h);
                     int shortSide = Math.Min(w, h);
                     double ratio = (double)w / h;
-                    int totalPixels = w * h;  // 总像素
+                    int totalPixels = w * h;
 
                     bool match = true;
 
@@ -554,9 +606,25 @@ namespace Imagefilter
                             }
                         }
                     }
+                    else if (mode == "Normal")
+                    {
+                        // 普通模式：不限方向，直接应用像素和比例条件
+                        if (p.EnableMaxW && w > p.MaxW) match = false;
+                        if (p.EnableMinW && w < p.MinW) match = false;
+                        if (p.EnableMaxH && h > p.MaxH) match = false;
+                        if (p.EnableMinH && h < p.MinH) match = false;
+                        if (match && p.EnableRatio)
+                        {
+                            // 比例筛选：宽/高 等于阈值（允许微小误差）
+                            bool ratioMatch = Math.Abs(ratio - p.RatioThreshold) < 0.001;
+                            if (p.RatioInvert) ratioMatch = !ratioMatch;
+                            if (!ratioMatch) match = false;
+                        }
+                    }
                     else if (mode == "Avatar")
                     {
-                        const double eps = 0.005;
+                        // 头像模式：误差 ±2%
+                        const double eps = 0.02;
                         if (Math.Abs(ratio - 1.0) > eps) match = false;
                         else
                         {
@@ -701,7 +769,7 @@ namespace Imagefilter
 
     public class ModeParameters
     {
-        // 尺寸条件
+        // 尺寸条件（宽/高）
         public bool EnableMaxW { get; set; }
         public int MaxW { get; set; }
         public bool EnableMinW { get; set; }
@@ -716,7 +784,7 @@ namespace Imagefilter
         public double RatioThreshold { get; set; }
         public bool RatioInvert { get; set; }
 
-        // 头像专用
+        // 头像专用（边长）
         public bool EnableMaxSize { get; set; }
         public int MaxSize { get; set; }
         public bool EnableMinSize { get; set; }
@@ -736,6 +804,6 @@ namespace Imagefilter
         public int LongSide { get; set; }
         public int ShortSide { get; set; }
         public double Ratio { get; set; }
-        public int TotalPixels { get; set; }  // 新增：总像素
+        public int TotalPixels { get; set; }
     }
 }
