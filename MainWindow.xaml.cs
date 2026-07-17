@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -9,16 +9,18 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Shapes;
 using Microsoft.Win32;
 using SixLabors.ImageSharp;
 using ImageSharp = SixLabors.ImageSharp.Image;
+using WpfRectangle = System.Windows.Shapes.Rectangle;
 
 namespace Imagefilter
 {
     public partial class MainWindow : Window
     {
         private readonly ObservableCollection<ImageInfo> _results = new();
-        private readonly string _configPath = Path.Combine(
+        private readonly string _configPath = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ImageFilter", "config.json");
 
@@ -30,12 +32,22 @@ namespace Imagefilter
             try
             {
                 InitializeComponent();
+
+                // 强制显示窗口
+                this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                this.Visibility = Visibility.Visible;
+                this.Show();
+                this.Activate();
+                this.Topmost = true;
+                System.Threading.Thread.Sleep(100);
+                this.Topmost = false;
+
                 listResults.ItemsSource = _results;
                 LogMessage("程序已启动，准备就绪。");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"窗口初始化错误：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"窗口初始化错误：{ex.Message}\n{ex.StackTrace}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -47,6 +59,19 @@ namespace Imagefilter
                 AttachCheckboxEvents();
                 AttachNumericTextBoxEvents();
                 SelectMode("Normal");
+
+                // 滑块初始化（控件已完全加载）
+                try
+                {
+                    UpdatePixelRangeUI(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
+                    UpdatePixelRangeUI(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
+                    UpdatePixelRangeUI(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
+                    UpdatePixelRangeUI(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"滑块初始化失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
@@ -89,9 +114,9 @@ namespace Imagefilter
         {
             try
             {
-                if (File.Exists(_configPath))
+                if (System.IO.File.Exists(_configPath))
                 {
-                    string json = File.ReadAllText(_configPath);
+                    string json = System.IO.File.ReadAllText(_configPath);
                     var config = JsonSerializer.Deserialize<Config>(json);
                     if (config != null)
                     {
@@ -115,9 +140,10 @@ namespace Imagefilter
                     DestPath = txtDestPath.Text
                 };
                 string json = JsonSerializer.Serialize(config);
-                string dir = Path.GetDirectoryName(_configPath);
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_configPath, json);
+                string dir = System.IO.Path.GetDirectoryName(_configPath);
+                if (!System.IO.Directory.Exists(dir))
+                    System.IO.Directory.CreateDirectory(dir);
+                System.IO.File.WriteAllText(_configPath, json);
             }
             catch { }
         }
@@ -328,6 +354,85 @@ namespace Imagefilter
             }
         }
 
+        // ========== 像素值滑块事件 ==========
+        private void NormalPixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
+        }
+        private void NormalPixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
+        }
+        private void WidePixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
+        }
+        private void WidePixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
+        }
+        private void AvatarPixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
+        }
+        private void AvatarPixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
+        }
+        private void PortraitPixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
+        }
+        private void PortraitPixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdatePixelRangeUI(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
+        }
+
+        private void UpdatePixelRangeUI(Slider minSlider, Slider maxSlider, WpfRectangle highlight, TextBlock textBlock)
+        {
+            try
+            {
+                // 确保 min <= max（滑块不能重叠）
+                if (minSlider.Value > maxSlider.Value)
+                    minSlider.Value = maxSlider.Value - 500000;
+
+                var parent = highlight.Parent as Grid;
+                if (parent == null) return;
+                double width = parent.ActualWidth;
+                if (width <= 0) return;
+
+                double min = minSlider.Minimum;
+                double max = minSlider.Maximum;
+                double minVal = minSlider.Value;
+                double maxVal = maxSlider.Value;
+
+                double minPercent = (minVal - min) / (max - min);
+                double maxPercent = (maxVal - min) / (max - min);
+
+                double marginLeft = width * minPercent;
+                double highlightWidth = width * (maxPercent - minPercent);
+
+                highlight.Margin = new Thickness(marginLeft, 0, 0, 0);
+                highlight.Width = highlightWidth;
+
+                textBlock.Text = $"{FormatNumber((int)minVal)} - {FormatNumber((int)maxVal)} px";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"更新滑块界面时出错：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private string FormatNumber(int num)
+        {
+            if (num >= 1000000)
+                return (num / 1000000.0).ToString("0.##") + "M";
+            else if (num >= 1000)
+                return (num / 1000.0).ToString("0.#") + "K";
+            else
+                return num.ToString();
+        }
+
         // ========== 开始筛选 ==========
         private async void StartFilter_Click(object sender, RoutedEventArgs e)
         {
@@ -373,7 +478,7 @@ namespace Imagefilter
             try
             {
                 var sourcePath = txtSourcePath.Text.Trim();
-                if (!Directory.Exists(sourcePath))
+                if (!System.IO.Directory.Exists(sourcePath))
                 {
                     MessageBox.Show("源路径不存在，请重新选择。", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -434,7 +539,7 @@ namespace Imagefilter
             }
         }
 
-        // ========== 读取模式参数（清晰度基于短边） ==========
+        // ========== 读取模式参数 ==========
         private ModeParameters ReadModeParameters(string mode)
         {
             var p = new ModeParameters();
@@ -467,12 +572,15 @@ namespace Imagefilter
                     }
                 }
 
-                // 清晰度区间（基于短边）
                 if (NormalClaritySeg0.IsChecked == true) clarityRanges.Add((1, 720));
                 if (NormalClaritySeg1.IsChecked == true) clarityRanges.Add((720, 1080));
                 if (NormalClaritySeg2.IsChecked == true) clarityRanges.Add((1080, 1440));
                 if (NormalClaritySeg3.IsChecked == true) clarityRanges.Add((1440, 2160));
                 if (NormalClaritySeg4.IsChecked == true) clarityRanges.Add((2160, int.MaxValue));
+
+                p.EnablePixelRange = true;
+                p.PixelRangeMin = (int)NormalPixelSliderMin.Value;
+                p.PixelRangeMax = (int)NormalPixelSliderMax.Value;
             }
             else if (mode == "Wide")
             {
@@ -506,6 +614,10 @@ namespace Imagefilter
                 if (WideClaritySeg2.IsChecked == true) clarityRanges.Add((1080, 1440));
                 if (WideClaritySeg3.IsChecked == true) clarityRanges.Add((1440, 2160));
                 if (WideClaritySeg4.IsChecked == true) clarityRanges.Add((2160, int.MaxValue));
+
+                p.EnablePixelRange = true;
+                p.PixelRangeMin = (int)WidePixelSliderMin.Value;
+                p.PixelRangeMax = (int)WidePixelSliderMax.Value;
             }
             else if (mode == "Avatar")
             {
@@ -520,6 +632,10 @@ namespace Imagefilter
                 if (AvatarClaritySeg2.IsChecked == true) clarityRanges.Add((1080, 1440));
                 if (AvatarClaritySeg3.IsChecked == true) clarityRanges.Add((1440, 2160));
                 if (AvatarClaritySeg4.IsChecked == true) clarityRanges.Add((2160, int.MaxValue));
+
+                p.EnablePixelRange = true;
+                p.PixelRangeMin = (int)AvatarPixelSliderMin.Value;
+                p.PixelRangeMax = (int)AvatarPixelSliderMax.Value;
             }
             else if (mode == "Portrait")
             {
@@ -553,6 +669,10 @@ namespace Imagefilter
                 if (PortraitClaritySeg2.IsChecked == true) clarityRanges.Add((1080, 1440));
                 if (PortraitClaritySeg3.IsChecked == true) clarityRanges.Add((1440, 2160));
                 if (PortraitClaritySeg4.IsChecked == true) clarityRanges.Add((2160, int.MaxValue));
+
+                p.EnablePixelRange = true;
+                p.PixelRangeMin = (int)PortraitPixelSliderMin.Value;
+                p.PixelRangeMax = (int)PortraitPixelSliderMax.Value;
             }
 
             p.EnableClarity = clarityRanges.Count > 0;
@@ -567,7 +687,7 @@ namespace Imagefilter
             return defaultValue;
         }
 
-        // ========== 筛选逻辑（清晰度基于短边） ==========
+        // ========== 筛选逻辑 ==========
         private List<ImageInfo> FilterImages(List<string> files, string mode, ModeParameters p, IProgress<string> progress, CancellationToken token)
         {
             var matched = new List<ImageInfo>();
@@ -596,7 +716,6 @@ namespace Imagefilter
 
                     if (mode == "Normal")
                     {
-                        // 普通模式：不限方向
                         if (p.EnableMaxW && w > p.MaxW) match = false;
                         if (p.EnableMinW && w < p.MinW) match = false;
                         if (p.EnableMaxH && h > p.MaxH) match = false;
@@ -660,11 +779,18 @@ namespace Imagefilter
                         if (!clarityOk) match = false;
                     }
 
+                    // 像素值范围筛选（总像素）—— 左包含右不包含
+                    if (match && p.EnablePixelRange)
+                    {
+                        if (totalPixels < p.PixelRangeMin || totalPixels >= p.PixelRangeMax)
+                            match = false;
+                    }
+
                     if (match)
                     {
                         matched.Add(new ImageInfo
                         {
-                            FileName = Path.GetFileName(file),
+                            FileName = System.IO.Path.GetFileName(file),
                             FullPath = file,
                             Width = w,
                             Height = h,
@@ -699,8 +825,8 @@ namespace Imagefilter
                 ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp"
             };
             var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            return Directory.GetFiles(root, "*.*", searchOption)
-                            .Where(f => extensions.Contains(Path.GetExtension(f)))
+            return System.IO.Directory.GetFiles(root, "*.*", searchOption)
+                            .Where(f => extensions.Contains(System.IO.Path.GetExtension(f)))
                             .ToList();
         }
 
@@ -717,9 +843,9 @@ namespace Imagefilter
             }
 
             var destDir = txtDestPath.Text.Trim();
-            if (!Directory.Exists(destDir))
+            if (!System.IO.Directory.Exists(destDir))
             {
-                try { Directory.CreateDirectory(destDir); }
+                try { System.IO.Directory.CreateDirectory(destDir); }
                 catch (Exception ex) { MessageBox.Show($"无法创建目标目录：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error); return; }
             }
 
@@ -734,15 +860,17 @@ namespace Imagefilter
                 {
                     try
                     {
-                        string destFile = Path.Combine(destDir, item.FileName);
+                        string destFile = System.IO.Path.Combine(destDir, item.FileName);
                         int count = 1;
-                        string name = Path.GetFileNameWithoutExtension(item.FileName);
-                        string ext = Path.GetExtension(item.FileName);
-                        while (File.Exists(destFile))
-                            destFile = Path.Combine(destDir, $"{name} ({count++}){ext}");
+                        string name = System.IO.Path.GetFileNameWithoutExtension(item.FileName);
+                        string ext = System.IO.Path.GetExtension(item.FileName);
+                        while (System.IO.File.Exists(destFile))
+                            destFile = System.IO.Path.Combine(destDir, $"{name} ({count++}){ext}");
 
-                        if (copy) File.Copy(item.FullPath, destFile);
-                        else File.Move(item.FullPath, destFile);
+                        if (copy)
+                            System.IO.File.Copy(item.FullPath, destFile);
+                        else
+                            System.IO.File.Move(item.FullPath, destFile);
                         success++;
                     }
                     catch (Exception ex)
@@ -789,6 +917,9 @@ namespace Imagefilter
         public int MinSize { get; set; }
         public bool EnableClarity { get; set; }
         public List<(int Low, int High)> ClarityRanges { get; set; } = new();
+        public bool EnablePixelRange { get; set; }
+        public int PixelRangeMin { get; set; }
+        public int PixelRangeMax { get; set; }
     }
 
     public class ImageInfo
