@@ -9,11 +9,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Shapes;
 using Microsoft.Win32;
 using SixLabors.ImageSharp;
 using ImageSharp = SixLabors.ImageSharp.Image;
-using WpfRectangle = System.Windows.Shapes.Rectangle;
 
 namespace Imagefilter
 {
@@ -26,6 +24,7 @@ namespace Imagefilter
 
         private string _currentMode = "Normal";
         private CancellationTokenSource? _cancellationTokenSource;
+        private bool _isUpdatingSlider = false;
 
         public MainWindow()
         {
@@ -60,13 +59,13 @@ namespace Imagefilter
                 AttachNumericTextBoxEvents();
                 SelectMode("Normal");
 
-                // 滑块初始化（控件已完全加载）
+                // 在 Loaded 中初始化滑块（此时控件已完全创建）
                 try
                 {
-                    UpdatePixelRangeUI(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
-                    UpdatePixelRangeUI(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
-                    UpdatePixelRangeUI(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
-                    UpdatePixelRangeUI(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
+                    UpdateSliderPair(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
+                    UpdateSliderPair(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
+                    UpdateSliderPair(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
+                    UpdateSliderPair(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
                 }
                 catch (Exception ex)
                 {
@@ -354,72 +353,91 @@ namespace Imagefilter
             }
         }
 
-        // ========== 像素值滑块事件 ==========
+        // ========== 像素值滑块事件处理 ==========
         private void NormalPixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
+            UpdateSliderPair(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
         }
         private void NormalPixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
+            UpdateSliderPair(NormalPixelSliderMin, NormalPixelSliderMax, NormalPixelRangeHighlight, NormalPixelRangeText);
         }
+
         private void WidePixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
+            UpdateSliderPair(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
         }
         private void WidePixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
+            UpdateSliderPair(WidePixelSliderMin, WidePixelSliderMax, WidePixelRangeHighlight, WidePixelRangeText);
         }
+
         private void AvatarPixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
+            UpdateSliderPair(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
         }
         private void AvatarPixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
+            UpdateSliderPair(AvatarPixelSliderMin, AvatarPixelSliderMax, AvatarPixelRangeHighlight, AvatarPixelRangeText);
         }
+
         private void PortraitPixelSliderMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
+            UpdateSliderPair(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
         }
         private void PortraitPixelSliderMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            UpdatePixelRangeUI(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
+            UpdateSliderPair(PortraitPixelSliderMin, PortraitPixelSliderMax, PortraitPixelRangeHighlight, PortraitPixelRangeText);
         }
 
-        private void UpdatePixelRangeUI(Slider minSlider, Slider maxSlider, WpfRectangle highlight, TextBlock textBlock)
+        // 核心更新方法（加入空值检查）
+        private void UpdateSliderPair(Slider minSlider, Slider maxSlider, System.Windows.Shapes.Rectangle highlight, TextBlock textBlock)
         {
+            // 空值检查，防止控件未加载时调用
+            if (minSlider == null || maxSlider == null || highlight == null || textBlock == null)
+                return;
+
+            if (_isUpdatingSlider) return;
+            _isUpdatingSlider = true;
+
             try
             {
-                // 确保 min <= max（滑块不能重叠）
-                if (minSlider.Value > maxSlider.Value)
-                    minSlider.Value = maxSlider.Value - 500000;
+                double min = minSlider.Value;
+                double max = maxSlider.Value;
+                double step = 500000;
+
+                if (min >= max)
+                {
+                    minSlider.Value = max - step;
+                }
+                if (max <= min)
+                {
+                    maxSlider.Value = min + step;
+                }
+
+                min = minSlider.Value;
+                max = maxSlider.Value;
 
                 var parent = highlight.Parent as Grid;
-                if (parent == null) return;
-                double width = parent.ActualWidth;
-                if (width <= 0) return;
+                if (parent != null)
+                {
+                    double trackWidth = parent.ActualWidth;
+                    if (trackWidth > 0)
+                    {
+                        double minPercent = (min - minSlider.Minimum) / (minSlider.Maximum - minSlider.Minimum);
+                        double maxPercent = (max - maxSlider.Minimum) / (maxSlider.Maximum - maxSlider.Minimum);
+                        double marginLeft = trackWidth * minPercent;
+                        double width = trackWidth * (maxPercent - minPercent);
+                        highlight.Margin = new Thickness(marginLeft, 0, 0, 0);
+                        highlight.Width = width;
+                    }
+                }
 
-                double min = minSlider.Minimum;
-                double max = minSlider.Maximum;
-                double minVal = minSlider.Value;
-                double maxVal = maxSlider.Value;
-
-                double minPercent = (minVal - min) / (max - min);
-                double maxPercent = (maxVal - min) / (max - min);
-
-                double marginLeft = width * minPercent;
-                double highlightWidth = width * (maxPercent - minPercent);
-
-                highlight.Margin = new Thickness(marginLeft, 0, 0, 0);
-                highlight.Width = highlightWidth;
-
-                textBlock.Text = $"{FormatNumber((int)minVal)} - {FormatNumber((int)maxVal)} px";
+                textBlock.Text = $"{FormatNumber((int)min)} - {FormatNumber((int)max)} px";
             }
-            catch (Exception ex)
+            finally
             {
-                MessageBox.Show($"更新滑块界面时出错：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _isUpdatingSlider = false;
             }
         }
 

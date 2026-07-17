@@ -292,22 +292,24 @@
                                                                            VerticalAlignment="Center"
                                                                            RadiusX="3"
                                                                            RadiusY="3"
-                                                                           Opacity="0.6"/>
+                                                                           Opacity="0.6"
+                                                                           HorizontalAlignment="Left"
+                                                                           Width="0"/>
                                                                 <Slider x:Name="NormalPixelSliderMin"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="0"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="NormalPixelSliderMin_ValueChanged"/>
                                                                 <Slider x:Name="NormalPixelSliderMax"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="16000000"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="NormalPixelSliderMax_ValueChanged"/>
                                                         </Grid>
                                                         <TextBlock Grid.Column="1"
@@ -475,7 +477,7 @@
                                                            Canvas.Left="280"
                                                            Canvas.Top="35"/>
                                         </Canvas>
-                                        <!-- 像素值筛选（总像素） -->
+                                        <!-- 像素值筛选 -->
                                         <StackPanel Margin="0,12,0,0">
                                                 <TextBlock Text="像素值筛选（总像素）"
                                                            FontWeight="Bold"
@@ -499,22 +501,24 @@
                                                                            VerticalAlignment="Center"
                                                                            RadiusX="3"
                                                                            RadiusY="3"
-                                                                           Opacity="0.6"/>
+                                                                           Opacity="0.6"
+                                                                           HorizontalAlignment="Left"
+                                                                           Width="0"/>
                                                                 <Slider x:Name="WidePixelSliderMin"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="0"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="WidePixelSliderMin_ValueChanged"/>
                                                                 <Slider x:Name="WidePixelSliderMax"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="16000000"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="WidePixelSliderMax_ValueChanged"/>
                                                         </Grid>
                                                         <TextBlock Grid.Column="1"
@@ -527,7 +531,7 @@
                                         </StackPanel>
                                 </StackPanel>
 
-                                <!-- ============ 头像模式（1:1，±2%） ============ -->
+                                <!-- ============ 头像模式 ============ -->
                                 <StackPanel x:Name="panelAvatar"
                                             Visibility="Collapsed">
                                         <TextBlock Text="头像模式（1:1，允许误差 ±2%）"
@@ -648,22 +652,24 @@
                                                                            VerticalAlignment="Center"
                                                                            RadiusX="3"
                                                                            RadiusY="3"
-                                                                           Opacity="0.6"/>
+                                                                           Opacity="0.6"
+                                                                           HorizontalAlignment="Left"
+                                                                           Width="0"/>
                                                                 <Slider x:Name="AvatarPixelSliderMin"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="0"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="AvatarPixelSliderMin_ValueChanged"/>
                                                                 <Slider x:Name="AvatarPixelSliderMax"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="16000000"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="AvatarPixelSliderMax_ValueChanged"/>
                                                         </Grid>
                                                         <TextBlock Grid.Column="1"
@@ -855,22 +861,24 @@
                                                                            VerticalAlignment="Center"
                                                                            RadiusX="3"
                                                                            RadiusY="3"
-                                                                           Opacity="0.6"/>
+                                                                           Opacity="0.6"
+                                                                           HorizontalAlignment="Left"
+                                                                           Width="0"/>
                                                                 <Slider x:Name="PortraitPixelSliderMin"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="0"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="PortraitPixelSliderMin_ValueChanged"/>
                                                                 <Slider x:Name="PortraitPixelSliderMax"
                                                                         Minimum="0"
-                                                                        Maximum="100000000"
+                                                                        Maximum="16000000"
                                                                         Value="16000000"
                                                                         TickFrequency="500000"
                                                                         IsSnapToTickEnabled="True"
-                                                                        Style="{StaticResource RangeSliderThumbStyle}"
+                                                                        Style="{StaticResource PixelRangeSliderStyle}"
                                                                         ValueChanged="PortraitPixelSliderMax_ValueChanged"/>
                                                         </Grid>
                                                         <TextBlock Grid.Column="1"

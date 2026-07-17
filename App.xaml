@@ -45,37 +45,10 @@
 
                 <!-- 停止按钮专用样式 -->
                 <Style x:Key="StopButton"
-                       TargetType="Button">
+                       TargetType="Button"
+                       BasedOn="{StaticResource {x:Type Button}}">
                         <Setter Property="Background"
                                 Value="{StaticResource StopButtonColor}"/>
-                        <Setter Property="Foreground"
-                                Value="White"/>
-                        <Setter Property="Padding"
-                                Value="10,5"/>
-                        <Setter Property="Margin"
-                                Value="4"/>
-                        <Setter Property="FontWeight"
-                                Value="SemiBold"/>
-                        <Setter Property="Cursor"
-                                Value="Hand"/>
-                        <Setter Property="BorderThickness"
-                                Value="0"/>
-                        <Setter Property="Height"
-                                Value="32"/>
-                        <Setter Property="Opacity"
-                                Value="0.9"/>
-                        <Style.Triggers>
-                                <Trigger Property="IsMouseOver"
-                                         Value="True">
-                                        <Setter Property="Opacity"
-                                                Value="1"/>
-                                </Trigger>
-                                <Trigger Property="IsPressed"
-                                         Value="True">
-                                        <Setter Property="Opacity"
-                                                Value="0.8"/>
-                                </Trigger>
-                        </Style.Triggers>
                 </Style>
 
                 <!-- TextBox 样式 -->
@@ -259,34 +232,60 @@
                                 Value="0,2,0,0"/>
                 </Style>
 
-                <!-- 修正后的 RangeSlider 样式 -->
-                <Style x:Key="RangeSliderThumbStyle"
-                                TargetType="Slider">
+                <!-- 像素值滑块样式（圆形，带悬停高亮） -->
+                <Style x:Key="PixelRangeSliderStyle"
+                       TargetType="Slider">
                         <Setter Property="Foreground"
-                                        Value="{StaticResource AccentColor}"/>
+                                Value="{StaticResource AccentColor}"/>
                         <Setter Property="Template">
                                 <Setter.Value>
                                         <ControlTemplate TargetType="Slider">
-                                                <Grid>
+                                                <Grid Height="30">
                                                         <Track x:Name="PART_Track"
-                                                                        Grid.Row="1">
+                                                               Grid.Row="0">
                                                                 <Track.DecreaseRepeatButton>
                                                                         <RepeatButton Command="Slider.DecreaseLarge"
-                                                                                        Background="Transparent"/>
+                                                                                      Background="Transparent"/>
                                                                 </Track.DecreaseRepeatButton>
                                                                 <Track.IncreaseRepeatButton>
                                                                         <RepeatButton Command="Slider.IncreaseLarge"
-                                                                                        Background="Transparent"/>
+                                                                                      Background="Transparent"/>
                                                                 </Track.IncreaseRepeatButton>
                                                                 <Track.Thumb>
-                                                                        <Thumb>
+                                                                        <Thumb x:Name="Thumb">
                                                                                 <Thumb.Template>
                                                                                         <ControlTemplate TargetType="Thumb">
-                                                                                                <Ellipse Fill="{TemplateBinding Foreground}"
-                                                                                                                Width="16"
-                                                                                                                Height="16"
-                                                                                                                Stroke="White"
-                                                                                                                StrokeThickness="2"/>
+                                                                                                <Grid>
+                                                                                                        <!-- 圆形主体 -->
+                                                                                                        <Ellipse x:Name="Ellipse"
+                                                                                                                 Fill="{TemplateBinding Foreground}"
+                                                                                                                 Width="18"
+                                                                                                                 Height="18"
+                                                                                                                 Stroke="White"
+                                                                                                                 StrokeThickness="2"/>
+                                                                                                        <!-- 高亮光环（默认隐藏） -->
+                                                                                                        <Ellipse x:Name="Glow"
+                                                                                                                 Fill="Transparent"
+                                                                                                                 Width="24"
+                                                                                                                 Height="24"
+                                                                                                                 Stroke="{TemplateBinding Foreground}"
+                                                                                                                 StrokeThickness="3"
+                                                                                                                 Opacity="0"/>
+                                                                                                </Grid>
+                                                                                                <ControlTemplate.Triggers>
+                                                                                                        <Trigger Property="IsMouseOver"
+                                                                                                                 Value="True">
+                                                                                                                <Setter TargetName="Glow"
+                                                                                                                        Property="Opacity"
+                                                                                                                        Value="0.6"/>
+                                                                                                        </Trigger>
+                                                                                                        <Trigger Property="IsDragging"
+                                                                                                                 Value="True">
+                                                                                                                <Setter TargetName="Glow"
+                                                                                                                        Property="Opacity"
+                                                                                                                        Value="1"/>
+                                                                                                        </Trigger>
+                                                                                                </ControlTemplate.Triggers>
                                                                                         </ControlTemplate>
                                                                                 </Thumb.Template>
                                                                         </Thumb>
